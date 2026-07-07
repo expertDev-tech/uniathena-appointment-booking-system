@@ -9,6 +9,8 @@ use App\Services\AppointmentService;
 use App\Http\Requests\CancelAppointmentRequest;
 use App\Models\Appointment;
 use App\Http\Requests\RescheduleAppointmentRequest;
+use App\Services\NotificationService;
+use App\Services\EmailService;
 
 class AppointmentController extends BaseController
 {
