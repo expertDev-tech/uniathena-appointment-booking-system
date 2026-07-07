@@ -132,7 +132,7 @@ Cancels an existing appointment.
 
 ```json
 {
-    "reason": "Medical emergency"
+    "cancel_reason": "Medical emergency"
 }
 ```
 
