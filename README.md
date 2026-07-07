@@ -126,7 +126,7 @@ docs/architecture/api-design.md
 A Postman Collection is included in:
 
 ```
-postman/
+docs/postmain-guide.md
 ```
 
 ---
