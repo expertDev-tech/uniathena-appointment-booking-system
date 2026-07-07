@@ -35,7 +35,10 @@ class DoctorAvailabilityService
 
             DB::rollBack();
 
-            throw $exception;
+            throw new BusinessException(
+                'Unable to create Doctor availability.',
+                500
+            );
         }
     }
 
