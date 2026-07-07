@@ -7,25 +7,27 @@ use App\Models\Appointment;
 use App\Exceptions\BusinessException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use App\Services\NotificationService;
-use App\Services\EmailService;
+// use App\Services\NotificationService;
+// use App\Services\EmailService;
+use Carbon\Carbon;
+use App\Events\AppointmentNotificationEvent;
 
 class AppointmentService
 {
     /**
      * Create a new class instance.
      */
-    protected NotificationService $notificationService;
-    protected EmailService $emailService;
+    // protected NotificationService $notificationService;
+    // protected EmailService $emailService;
 
-    public function __construct(
-        NotificationService $notificationService,
-        EmailService $emailService
-        )
-    {
-        $this->notificationService = $notificationService;
-        $this->emailService = $emailService;
-    }
+    // public function __construct(
+    //     NotificationService $notificationService,
+    //     EmailService $emailService
+    //     )
+    // {
+    //     $this->notificationService = $notificationService;
+    //     $this->emailService = $emailService;
+    // }
 
     private function generateReferenceNumber(): string
     {
@@ -55,6 +57,8 @@ class AppointmentService
                 )
                 ->lockForUpdate()
                 ->first();
+
+            $this->validatePastSlot($slot);
 
             if (!$slot) {
                 throw new BusinessException(
@@ -87,13 +91,19 @@ class AppointmentService
 
             DB::commit();
 
-            $notification = $this->notificationService->store(
+            // $notification = $this->notificationService->store(
+            //     $appointment,
+            //     'BOOKED',
+            //     'Appointment booked successfully.'
+            // );
+
+            // $this->emailService->send($notification);
+
+            event(new AppointmentNotificationEvent(
                 $appointment,
                 'BOOKED',
                 'Appointment booked successfully.'
-            );
-
-            $this->emailService->send($notification);
+            ));
 
             return $appointment;
 
@@ -126,13 +136,19 @@ class AppointmentService
 
             DB::commit();
 
-            $notification = $this->notificationService->store(
+            // $notification = $this->notificationService->store(
+            //     $appointment,
+            //     'CANCELLED',
+            //     'Appointment cancelled successfully.'
+            // );
+
+            // $this->emailService->send($notification);
+
+            event(new AppointmentNotificationEvent(
                 $appointment,
                 'CANCELLED',
                 'Appointment cancelled successfully.'
-            );
-
-            $this->emailService->send($notification);
+            ));
 
             return $appointment;
 
@@ -174,13 +190,19 @@ class AppointmentService
 
             DB::commit();
 
-            $notification = $this->notificationService->store(
+            // $notification = $this->notificationService->store(
+            //     $appointment,
+            //     'RESCHEDULED',
+            //     'Appointment rescheduled successfully.'
+            // );
+
+            // $this->emailService->send($notification);
+
+            event(new AppointmentNotificationEvent(
                 $appointment,
                 'RESCHEDULED',
                 'Appointment rescheduled successfully.'
-            );
-
-            $this->emailService->send($notification);
+            ));
 
             return $appointment;
 
@@ -246,6 +268,23 @@ class AppointmentService
 
             throw new BusinessException(
                 'This slot is already booked.',
+                409
+            );
+        }
+    }
+
+    private function validatePastSlot(
+        AvailabilitySlot $slot
+    ): void
+    {
+        $slotDateTime = Carbon::parse(
+            $slot->availability->available_date . ' ' . $slot->start_time
+        );
+
+        if ($slotDateTime->isPast()) {
+
+            throw new BusinessException(
+                'This slot has already passed.',
                 409
             );
         }
