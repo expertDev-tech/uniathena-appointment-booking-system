@@ -24,3 +24,13 @@ Route::post(
     [AppointmentController::class, 'store']
 );
 
+Route::patch(
+    '/appointments/{appointment}/cancel',
+    [AppointmentController::class, 'cancel']
+);
+
+Route::patch(
+    '/appointments/{appointment}/reschedule',
+    [AppointmentController::class, 'reschedule']
+);
+
