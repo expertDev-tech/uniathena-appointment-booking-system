@@ -5,9 +5,11 @@ namespace App\Services;
 use App\Models\Doctor;
 use App\Models\DoctorAvailability;
 use App\Models\AvailabilitySlot;
+use App\Models\Appointment;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Exceptions\BusinessException;
+use Illuminate\Database\Eloquent\Collection;
 
 class DoctorAvailabilityService
 {
@@ -106,5 +108,38 @@ class DoctorAvailabilityService
 
             $startTime = $nextTime;
         }
+    }
+
+    public function getAvailableSlots(
+        Doctor $doctor,
+        array $data
+    ) {
+
+        $availabilities = DoctorAvailability::where('doctor_id', $doctor->id)
+            ->where('available_date', $data['date'])
+            ->get();
+
+
+        if ($availabilities->isEmpty()) {
+            return collect();
+        }
+
+        $availabilityIds = $availabilities->pluck('id');
+
+        $slotIds = AvailabilitySlot::whereIn('availability_id', $availabilityIds)
+        ->pluck('id');
+
+        $bookedSlots = Appointment::where('status', 'BOOKED')
+        ->whereIn('availability_slot_id', $slotIds)
+        ->pluck('availability_slot_id');
+
+
+        $availableSlots = AvailabilitySlot::whereIn('availability_id', $availabilityIds)
+        ->whereNotIn('id', $bookedSlots)
+        ->orderBy('start_time')
+        ->get();
+
+        return $availableSlots;
+
     }
 }

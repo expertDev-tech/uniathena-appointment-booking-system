@@ -13,3 +13,8 @@ Route::post(
     [DoctorAvailabilityController::class, 'store']
 );
 
+Route::get(
+    '/doctors/{doctor}/available-slots',
+    [DoctorAvailabilityController::class, 'availableSlots']
+);
+
