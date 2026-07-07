@@ -8,8 +8,9 @@ use Illuminate\Queue\InteractsWithQueue;
 use App\Services\NotificationService;
 use App\Services\EmailService;
 
-class SendAppointmentNotification
+class SendAppointmentNotification implements ShouldQueue
 {
+    use InteractsWithQueue;
     /**
      * Create the event listener.
      */
