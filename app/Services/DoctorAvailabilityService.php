@@ -103,6 +103,11 @@ class DoctorAvailabilityService
 
             $nextTime = $startTime->copy()->addMinutes($availability->slot_duration);
 
+            if ($startTime->isPast()) {
+                $startTime = $nextTime;
+                continue;
+            }
+
             AvailabilitySlot::create([
                 'availability_id' => $availability->id,
                 'start_time' => $startTime->format('H:i:s'),
