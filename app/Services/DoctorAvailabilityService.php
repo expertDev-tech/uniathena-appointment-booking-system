@@ -23,6 +23,8 @@ class DoctorAvailabilityService
 
             $this->validateSlotDuration($data);
 
+            $this->validateAvailabilityTime($data);
+
             $availability = $this->storeAvailability($doctor, $data);
 
             $this->generateAvailabilitySlots($availability);
@@ -83,6 +85,23 @@ class DoctorAvailabilityService
         }
     }
 
+    private function validateAvailabilityTime(
+        array $data
+    ): void
+    {
+        $endDateTime = Carbon::parse(
+            $data['available_date'] . ' ' . $data['end_time']
+        );
+
+        if ($endDateTime->isPast()) {
+
+            throw new BusinessException(
+                'Availability cannot be created because the selected time has already passed.',
+                409
+            );
+        }
+    }
+
     private function storeAvailability(Doctor $doctor, array $data): DoctorAvailability
     {
         return DoctorAvailability::create([
@@ -94,14 +113,22 @@ class DoctorAvailabilityService
         ]);
     }
 
-    private function generateAvailabilitySlots(DoctorAvailability $availability): void
+    private function generateAvailabilitySlots(
+        DoctorAvailability $availability
+    ): void
     {
-        $startTime = Carbon::parse($availability->start_time);
-        $endTime = Carbon::parse($availability->end_time);
+        $startTime = Carbon::parse(
+            $availability->available_date . ' ' . $availability->start_time
+        );
+
+        $endTime = Carbon::parse(
+            $availability->available_date . ' ' . $availability->end_time
+        );
 
         while ($startTime < $endTime) {
 
-            $nextTime = $startTime->copy()->addMinutes($availability->slot_duration);
+            $nextTime = $startTime->copy()
+                ->addMinutes($availability->slot_duration);
 
             if ($startTime->isPast()) {
                 $startTime = $nextTime;
